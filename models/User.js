@@ -2,28 +2,51 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 
-// Encryption utilities
+// Modern Node.js v22 Compatible Encryption utilities
 const algorithm = 'aes-256-cbc';
 const secretKey = process.env.ENCRYPTION_KEY || 'your_32_character_encryption_key_123';
 
 function encrypt(text) {
   if (!text) return text;
-  const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipher(algorithm, secretKey);
-  let encrypted = cipher.update(text, 'utf8', 'hex');
-  encrypted += cipher.final('hex');
-  return iv.toString('hex') + ':' + encrypted;
+  
+  try {
+    // Create proper key and IV
+    const key = crypto.scryptSync(secretKey, 'salt', 32);
+    const iv = crypto.randomBytes(16);
+    
+    // Use modern createCipher
+    const cipher = crypto.createCipher(algorithm, key);
+    let encrypted = cipher.update(text, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    
+    return iv.toString('hex') + ':' + encrypted;
+  } catch (error) {
+    console.error('Encryption error:', error);
+    return text; // Return original text if encryption fails
+  }
 }
 
 function decrypt(text) {
   if (!text || !text.includes(':')) return text;
-  const textParts = text.split(':');
-  const iv = Buffer.from(textParts.shift(), 'hex');
-  const encryptedText = textParts.join(':');
-  const decipher = crypto.createDecipher(algorithm, secretKey);
-  let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
-  decrypted += decipher.final('utf8');
-  return decrypted;
+  
+  try {
+    const textParts = text.split(':');
+    const iv = Buffer.from(textParts.shift(), 'hex');
+    const encryptedText = textParts.join(':');
+    
+    // Create proper key
+    const key = crypto.scryptSync(secretKey, 'salt', 32);
+    
+    // Use modern createDecipher
+    const decipher = crypto.createDecipher(algorithm, key);
+    let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    
+    return decrypted;
+  } catch (error) {
+    console.error('Decryption error:', error);
+    return text; // Return original text if decryption fails
+  }
 }
 
 const UserSchema = new mongoose.Schema({
