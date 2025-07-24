@@ -13,6 +13,22 @@ const { sendEmail } = require('../utils/email');
 
 const router = express.Router();
 
+// Safe audit logging function
+const safeAuditLog = async (logData) => {
+  try {
+    // Only create audit log if we have a valid userId
+    if (logData.userId) {
+      await AuditLog.createLog(logData);
+    } else {
+      // Log to console for debugging without crashing
+      console.log('Audit log skipped (no userId):', logData.action);
+    }
+  } catch (error) {
+    console.error('Audit log failed:', error.message);
+    // Don't crash the app if audit logging fails
+  }
+};
+
 // Validation rules
 const registerValidation = [
   body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
@@ -50,7 +66,7 @@ router.post('/register', registerValidation, async (req, res) => {
     // Check if user already exists
     const existingUser = await User.findByEmail(email);
     if (existingUser) {
-      await AuditLog.createLog({
+      await safeAuditLog({
         userId: null,
         action: 'user_created',
         success: false,
@@ -94,7 +110,7 @@ router.post('/register', registerValidation, async (req, res) => {
     
     // Log successful registration
     const duration = Date.now() - startTime;
-    await AuditLog.createLog({
+    await safeAuditLog({
       userId: user._id,
       action: 'user_created',
       success: true,
@@ -144,7 +160,7 @@ router.post('/register', registerValidation, async (req, res) => {
   } catch (error) {
     const duration = Date.now() - startTime;
     
-    await AuditLog.createLog({
+    await safeAuditLog({
       userId: null,
       action: 'user_created',
       success: false,
@@ -187,7 +203,7 @@ router.post('/login', loginValidation, async (req, res) => {
     const user = await User.findByEmail(email).select('+password +security');
     
     if (!user) {
-      await AuditLog.createLog({
+      await safeAuditLog({
         userId: null,
         action: 'login_failed',
         success: false,
@@ -207,7 +223,7 @@ router.post('/login', loginValidation, async (req, res) => {
     
     // Check if account is locked
     if (user.isLocked) {
-      await AuditLog.createLog({
+      await safeAuditLog({
         userId: user._id,
         action: 'login_failed',
         success: false,
@@ -226,7 +242,7 @@ router.post('/login', loginValidation, async (req, res) => {
     
     // Check if account is active
     if (!user.isActive) {
-      await AuditLog.createLog({
+      await safeAuditLog({
         userId: user._id,
         action: 'login_failed',
         success: false,
@@ -250,7 +266,7 @@ router.post('/login', loginValidation, async (req, res) => {
       // Increment failed login attempts
       await user.incLoginAttempts();
       
-      await AuditLog.createLog({
+      await safeAuditLog({
         userId: user._id,
         action: 'login_failed',
         success: false,
@@ -286,7 +302,7 @@ router.post('/login', loginValidation, async (req, res) => {
       });
       
       if (!verified) {
-        await AuditLog.createLog({
+        await safeAuditLog({
           userId: user._id,
           action: 'login_failed',
           success: false,
@@ -317,7 +333,7 @@ router.post('/login', loginValidation, async (req, res) => {
     
     // Log successful login
     const duration = Date.now() - startTime;
-    await AuditLog.createLog({
+    await safeAuditLog({
       userId: user._id,
       action: 'login',
       success: true,
@@ -364,7 +380,7 @@ router.post('/login', loginValidation, async (req, res) => {
   } catch (error) {
     const duration = Date.now() - startTime;
     
-    await AuditLog.createLog({
+    await safeAuditLog({
       userId: null,
       action: 'login_failed',
       success: false,
@@ -472,7 +488,7 @@ router.post('/logout', async (req, res) => {
     
     // Log logout
     if (userId) {
-      await AuditLog.createLog({
+      await safeAuditLog({
         userId,
         action: 'logout',
         success: true,
@@ -593,7 +609,7 @@ router.post('/verify-2fa', async (req, res) => {
     await user.save();
     
     // Log 2FA enablement
-    await AuditLog.createLog({
+    await safeAuditLog({
       userId: user._id,
       action: '2fa_enabled',
       success: true,
@@ -669,7 +685,7 @@ router.post('/disable-2fa', async (req, res) => {
     await user.save();
     
     // Log 2FA disablement
-    await AuditLog.createLog({
+    await safeAuditLog({
       userId: user._id,
       action: '2fa_disabled',
       success: true,

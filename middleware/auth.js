@@ -67,6 +67,135 @@ const getClientIP = (req) => {
 };
 
 // Authentication middleware
+// const authenticateToken = async (req, res, next) => {
+//   const startTime = Date.now();
+  
+//   try {
+//     const token = extractToken(req);
+    
+//     if (!token) {
+//       await AuditLog.createLog({
+//         userId: null,
+//         action: 'system_access',
+//         success: false,
+//         errorMessage: 'No authentication token provided',
+//         ipAddress: getClientIP(req),
+//         userAgent: req.headers['user-agent'] || 'Unknown',
+//         severity: 'medium',
+//         category: 'auth'
+//       });
+      
+//       return res.status(401).json({
+//         success: false,
+//         message: 'Access token is required'
+//       });
+//     }
+    
+//     // Verify token
+//     const decoded = verifyToken(token, process.env.JWT_SECRET);
+    
+//     // Find user and check if still active
+//     const user = await User.findById(decoded.userId).select('+security');
+    
+//     if (!user) {
+//       await AuditLog.createLog({
+//         userId: decoded.userId,
+//         action: 'system_access',
+//         success: false,
+//         errorMessage: 'User not found',
+//         ipAddress: getClientIP(req),
+//         userAgent: req.headers['user-agent'] || 'Unknown',
+//         severity: 'high',
+//         category: 'auth'
+//       });
+      
+//       return res.status(401).json({
+//         success: false,
+//         message: 'Invalid token - user not found'
+//       });
+//     }
+    
+//     if (!user.isActive) {
+//       await AuditLog.createLog({
+//         userId: user._id,
+//         action: 'system_access',
+//         success: false,
+//         errorMessage: 'User account is inactive',
+//         ipAddress: getClientIP(req),
+//         userAgent: req.headers['user-agent'] || 'Unknown',
+//         severity: 'medium',
+//         category: 'auth'
+//       });
+      
+//       return res.status(401).json({
+//         success: false,
+//         message: 'Account is inactive'
+//       });
+//     }
+    
+//     if (user.isLocked) {
+//       await AuditLog.createLog({
+//         userId: user._id,
+//         action: 'system_access',
+//         success: false,
+//         errorMessage: 'User account is locked',
+//         ipAddress: getClientIP(req),
+//         userAgent: req.headers['user-agent'] || 'Unknown',
+//         severity: 'medium',
+//         category: 'auth'
+//       });
+      
+//       return res.status(401).json({
+//         success: false,
+//         message: 'Account is temporarily locked'
+//       });
+//     }
+    
+//     // Add user to request object
+//     req.user = user;
+//     req.clientIP = getClientIP(req);
+//     req.userAgent = req.headers['user-agent'] || 'Unknown';
+    
+//     // Log successful authentication
+//     const duration = Date.now() - startTime;
+//     await AuditLog.createLog({
+//       userId: user._id,
+//       action: 'system_access',
+//       success: true,
+//       ipAddress: req.clientIP,
+//       userAgent: req.userAgent,
+//       duration,
+//       severity: 'low',
+//       category: 'auth'
+//     });
+    
+//     next();
+    
+//   } catch (error) {
+//     const duration = Date.now() - startTime;
+    
+//     await AuditLog.createLog({
+//       userId: null,
+//       action: 'system_access',
+//       success: false,
+//       errorMessage: error.message,
+//       ipAddress: getClientIP(req),
+//       userAgent: req.headers['user-agent'] || 'Unknown',
+//       duration,
+//       severity: 'medium',
+//       category: 'auth'
+//     });
+    
+//     return res.status(401).json({
+//       success: false,
+//       message: 'Invalid or expired token'
+//     });
+//   }
+// };
+
+// Add this check to your middleware/auth.js in the authenticateToken function
+// Around line 60-70, wrap the AuditLog.createLog calls with a check:
+
 const authenticateToken = async (req, res, next) => {
   const startTime = Date.now();
   
@@ -74,17 +203,7 @@ const authenticateToken = async (req, res, next) => {
     const token = extractToken(req);
     
     if (!token) {
-      await AuditLog.createLog({
-        userId: null,
-        action: 'system_access',
-        success: false,
-        errorMessage: 'No authentication token provided',
-        ipAddress: getClientIP(req),
-        userAgent: req.headers['user-agent'] || 'Unknown',
-        severity: 'medium',
-        category: 'auth'
-      });
-      
+      // Don't log to audit if no user - just return error
       return res.status(401).json({
         success: false,
         message: 'Access token is required'
@@ -98,16 +217,19 @@ const authenticateToken = async (req, res, next) => {
     const user = await User.findById(decoded.userId).select('+security');
     
     if (!user) {
-      await AuditLog.createLog({
-        userId: decoded.userId,
-        action: 'system_access',
-        success: false,
-        errorMessage: 'User not found',
-        ipAddress: getClientIP(req),
-        userAgent: req.headers['user-agent'] || 'Unknown',
-        severity: 'high',
-        category: 'auth'
-      });
+      // Only log if we have a valid user ID
+      if (decoded.userId) {
+        await AuditLog.createLog({
+          userId: decoded.userId,
+          action: 'system_access',
+          success: false,
+          errorMessage: 'User not found',
+          ipAddress: getClientIP(req),
+          userAgent: req.headers['user-agent'] || 'Unknown',
+          severity: 'high',
+          category: 'auth'
+        });
+      }
       
       return res.status(401).json({
         success: false,
@@ -115,43 +237,7 @@ const authenticateToken = async (req, res, next) => {
       });
     }
     
-    if (!user.isActive) {
-      await AuditLog.createLog({
-        userId: user._id,
-        action: 'system_access',
-        success: false,
-        errorMessage: 'User account is inactive',
-        ipAddress: getClientIP(req),
-        userAgent: req.headers['user-agent'] || 'Unknown',
-        severity: 'medium',
-        category: 'auth'
-      });
-      
-      return res.status(401).json({
-        success: false,
-        message: 'Account is inactive'
-      });
-    }
-    
-    if (user.isLocked) {
-      await AuditLog.createLog({
-        userId: user._id,
-        action: 'system_access',
-        success: false,
-        errorMessage: 'User account is locked',
-        ipAddress: getClientIP(req),
-        userAgent: req.headers['user-agent'] || 'Unknown',
-        severity: 'medium',
-        category: 'auth'
-      });
-      
-      return res.status(401).json({
-        success: false,
-        message: 'Account is temporarily locked'
-      });
-    }
-    
-    // Add user to request object
+    // Rest of your authentication logic...
     req.user = user;
     req.clientIP = getClientIP(req);
     req.userAgent = req.headers['user-agent'] || 'Unknown';
@@ -174,17 +260,20 @@ const authenticateToken = async (req, res, next) => {
   } catch (error) {
     const duration = Date.now() - startTime;
     
-    await AuditLog.createLog({
-      userId: null,
-      action: 'system_access',
-      success: false,
-      errorMessage: error.message,
-      ipAddress: getClientIP(req),
-      userAgent: req.headers['user-agent'] || 'Unknown',
-      duration,
-      severity: 'medium',
-      category: 'auth'
-    });
+    // Only log audit if we have user context
+    if (req.user) {
+      await AuditLog.createLog({
+        userId: req.user._id,
+        action: 'system_access',
+        success: false,
+        errorMessage: error.message,
+        ipAddress: getClientIP(req),
+        userAgent: req.headers['user-agent'] || 'Unknown',
+        duration,
+        severity: 'medium',
+        category: 'auth'
+      });
+    }
     
     return res.status(401).json({
       success: false,

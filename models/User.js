@@ -4,18 +4,18 @@ const crypto = require('crypto');
 
 // Modern Node.js v22 Compatible Encryption utilities
 const algorithm = 'aes-256-cbc';
-const secretKey = process.env.ENCRYPTION_KEY || 'your_32_character_encryption_key_123';
+const secretKey = process.env.ENCRYPTION_KEY ;
 
 function encrypt(text) {
   if (!text) return text;
   
   try {
-    // Create proper key and IV
+    // Create proper 32-byte key
     const key = crypto.scryptSync(secretKey, 'salt', 32);
     const iv = crypto.randomBytes(16);
     
-    // Use modern createCipher
-    const cipher = crypto.createCipher(algorithm, key);
+    // Use createCipheriv (modern method)
+    const cipher = crypto.createCipheriv(algorithm, key, iv);
     let encrypted = cipher.update(text, 'utf8', 'hex');
     encrypted += cipher.final('hex');
     
@@ -34,11 +34,11 @@ function decrypt(text) {
     const iv = Buffer.from(textParts.shift(), 'hex');
     const encryptedText = textParts.join(':');
     
-    // Create proper key
+    // Create proper 32-byte key
     const key = crypto.scryptSync(secretKey, 'salt', 32);
     
-    // Use modern createDecipher
-    const decipher = crypto.createDecipher(algorithm, key);
+    // Use createDecipheriv (modern method)
+    const decipher = crypto.createDecipheriv(algorithm, key, iv);
     let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
     
