@@ -142,6 +142,87 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// API root endpoint - provides information about available endpoints
+app.get('/api', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Real Estate Shareholder Management System API',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    endpoints: {
+      authentication: {
+        login: 'POST /api/auth/login',
+        register: 'POST /api/auth/register', 
+        logout: 'POST /api/auth/logout',
+        refresh: 'POST /api/auth/refresh',
+        setup2FA: 'POST /api/auth/setup-2fa',
+        verify2FA: 'POST /api/auth/verify-2fa',
+        disable2FA: 'POST /api/auth/disable-2fa'
+      },
+      users: {
+        profile: 'GET /api/users/profile',
+        updateProfile: 'PUT /api/users/profile',
+        uploadPicture: 'POST /api/users/profile/picture',
+        changePassword: 'PUT /api/users/profile/password',
+        listUsers: 'GET /api/users (Directors only)',
+        getUser: 'GET /api/users/:userId',
+        createUser: 'POST /api/users (Directors only)',
+        updateUser: 'PUT /api/users/:userId',
+        deleteUser: 'DELETE /api/users/:userId (Directors only)',
+        dashboard: 'GET /api/users/:userId/dashboard'
+      },
+      shares: {
+        listShares: 'GET /api/shares',
+        getShare: 'GET /api/shares/:shareId',
+        assignShare: 'POST /api/shares (Directors only)',
+        updateShare: 'PUT /api/shares/:shareId (Directors only)',
+        updateValue: 'PUT /api/shares/:shareId/value (Directors only)',
+        transferShare: 'PUT /api/shares/:shareId/transfer (Directors only)',
+        deleteShare: 'DELETE /api/shares/:shareId (Directors only)',
+        portfolio: 'GET /api/shares/portfolio/:shareholderId',
+        history: 'GET /api/shares/:shareId/history'
+      },
+      certificates: {
+        listCertificates: 'GET /api/certificates',
+        getCertificate: 'GET /api/certificates/:certificateId',
+        uploadCertificate: 'POST /api/certificates/upload',
+        approveCertificate: 'PUT /api/certificates/:certificateId/approve (Directors only)',
+        rejectCertificate: 'PUT /api/certificates/:certificateId/reject (Directors only)',
+        bulkApprove: 'PUT /api/certificates/bulk/approve/:shareholderId (Directors only)',
+        bulkReject: 'PUT /api/certificates/bulk/reject/:shareholderId (Directors only)',
+        downloadCertificate: 'GET /api/certificates/:certificateId/download',
+        deleteCertificate: 'DELETE /api/certificates/:certificateId',
+        pendingStats: 'GET /api/certificates/stats/pending (Directors only)'
+      },
+      audit: {
+        getLogs: 'GET /api/audit (Directors only)',
+        getLogDetails: 'GET /api/audit/:logId (Directors only)',
+        securityAlerts: 'GET /api/audit/security-alerts (Directors only)',
+        failedLogins: 'GET /api/audit/failed-logins (Directors only)',
+        userActivity: 'GET /api/audit/activity/:userId',
+        suspiciousActivity: 'GET /api/audit/suspicious-activity (Super Admin only)',
+        exportLogs: 'GET /api/audit/export (Super Admin only)',
+        systemStats: 'GET /api/audit/stats (Super Admin only)'
+      },
+      system: {
+        health: 'GET /api/health'
+      }
+    },
+    documentation: {
+      note: 'Most endpoints require authentication via Bearer token',
+      roles: {
+        visitor: 'Limited access - registration only',
+        shareholder: 'Can view own data and upload certificates',
+        director: 'Can manage all shareholders and shares',
+        super_admin: 'Full system access including audit logs'
+      },
+      authentication: 'Include Authorization: Bearer <token> header for protected routes',
+      chineseWall: 'Data access is restricted based on user roles and ownership'
+    }
+  });
+});
+
 // Serve static files from uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -153,6 +234,15 @@ if (process.env.NODE_ENV === 'production') {
     res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
   });
 }
+
+// Catch-all for unknown API routes
+app.all('/api/*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `API endpoint not found: ${req.method} ${req.path}`,
+    availableEndpoints: 'Visit GET /api for available endpoints'
+  });
+});
 
 // Error handling middleware (must be last)
 app.use(errorHandler);
