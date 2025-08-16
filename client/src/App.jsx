@@ -16,15 +16,15 @@ import LoginModal from './components/Auth/LoginModal';
 import RegisterModal from './components/Auth/RegisterModal';
 import Dashboard from './components/Dashboard/Dashboard';
 
-// Homepage Component
+// Homepage Component - Fixed layout structure
 const Homepage = ({ onGetStartedClick }) => {
   return (
-    <div className="min-h-screen">
+    <>
       <HeroSection onGetStartedClick={onGetStartedClick} />
       <FeaturesSection />
       <AboutSection />
       <ContactSection />
-    </div>
+    </>
   );
 };
 
@@ -74,75 +74,75 @@ const App = () => {
 
   return (
     <Router>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-        {/* Navigation - show on all pages */}
+      <div className="min-h-screen">
+        {/* Navigation - Fixed positioning */}
         <Navigation 
           onLoginClick={handleLoginClick}
           onRegisterClick={handleRegisterClick}
         />
         
-        {/* Routes */}
-        <Routes>
-          <Route 
-            path="/" 
-            element={
-              user ? (
-                <Navigate to="/dashboard" replace />
-              ) : (
-                <Homepage onGetStartedClick={handleGetStartedClick} />
-              )
-            } 
-          />
-          <Route 
-            path="/dashboard" 
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } 
-          />
-          {/* Redirect any unknown routes to home */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-
-        {/* Authentication Modals */}
-        <LoginModal 
-          isOpen={showLoginModal}
-          onClose={handleCloseLoginModal}
-          onSwitchToRegister={handleSwitchToRegister}
-        />
+        {/* Main Content - Removed conflicting background */}
+        <main>
+          <Routes>
+            <Route 
+              path="/" 
+              element={
+                user ? (
+                  <Navigate to="/dashboard" replace />
+                ) : (
+                  <Homepage onGetStartedClick={handleGetStartedClick} />
+                )
+              } 
+            />
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+          </Routes>
+        </main>
         
-        <RegisterModal 
-          isOpen={showRegisterModal}
-          onClose={handleCloseRegisterModal}
-          onSwitchToLogin={handleSwitchToLogin}
+        {/* Modals */}
+        {showLoginModal && (
+          <LoginModal 
+            onClose={handleCloseLoginModal}
+            onSwitchToRegister={handleSwitchToRegister}
+          />
+        )}
+        
+        {showRegisterModal && (
+          <RegisterModal 
+            onClose={handleCloseRegisterModal}
+            onSwitchToLogin={handleSwitchToLogin}
+          />
+        )}
+        
+        {/* Toast Container */}
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
         />
       </div>
     </Router>
   );
 };
 
-// Root App Component with Providers
-const RealEstateApp = () => {
-  return (
-    <AuthProvider>
-      <App />
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-        style={{ zIndex: 9999 }}
-        className="mt-16" // Add margin to account for fixed navigation
-      />
-    </AuthProvider>
-  );
-};
+// Wrap the app with AuthProvider
+const AppWithProvider = () => (
+  <AuthProvider>
+    <App />
+  </AuthProvider>
+);
 
-export default RealEstateApp;
+export default AppWithProvider;

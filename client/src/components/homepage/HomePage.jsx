@@ -4,14 +4,14 @@ import FeaturesSection from './FeaturesSection';
 import AboutSection from './AboutSection';
 import ContactSection from './ContactSection';
 
-const Homepage = () => {
+const Homepage = ({ onGetStartedClick }) => {
   return (
-    <div className="min-h-screen">
-      <HeroSection />
+    <>
+      <HeroSection onGetStartedClick={onGetStartedClick} />
       <FeaturesSection />
       <AboutSection />
       <ContactSection />
-    </div>
+    </>
   );
 };
 
