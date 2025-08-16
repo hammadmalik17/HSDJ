@@ -48,12 +48,10 @@ const Navigation = ({ onLoginClick, onRegisterClick }) => {
             <div className="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
               <Building2 className="h-6 w-6 lg:h-7 lg:w-7 text-white" />
             </div>
-            <span className={`text-xl lg:text-2xl font-bold transition-colors duration-300 ${
-              !isScrolled && location.pathname === '/' 
-                ? 'text-white' 
-                : 'bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent'
+            <span className={`text-xl lg:text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent ${
+              !isScrolled && location.pathname === '/' ? 'text-white' : ''
             }`}>
-              HSDJ
+              RealEstate Pro
             </span>
           </Link>
 
