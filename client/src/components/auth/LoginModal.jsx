@@ -142,7 +142,7 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
                 <Lock className="h-5 w-5 text-gray-400" />
               </div>
               <input
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 name="password"
                 value={formData.password}
                 onChange={handleInputChange}
@@ -170,20 +170,13 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
             )}
           </div>
 
-          {/* Remember Me & Forgot Password */}
-          <div className="flex items-center justify-between">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-              />
-              <span className="ml-2 text-sm text-gray-600">Remember me</span>
-            </label>
+          {/* Forgot Password */}
+          <div className="text-right">
             <button
               type="button"
               className="text-sm text-blue-600 hover:text-blue-700 font-medium"
             >
-              Forgot password?
+              Forgot your password?
             </button>
           </div>
 

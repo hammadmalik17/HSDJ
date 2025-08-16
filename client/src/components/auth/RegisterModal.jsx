@@ -17,6 +17,9 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
   
   const { register } = useAuth();
 
+  // DEBUG: Log props
+  console.log('RegisterModal received props:', { isOpen, onClose: !!onClose, onSwitchToLogin: !!onSwitchToLogin });
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -130,7 +133,13 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
     return { strength, ...levels[strength - 1] || levels[0] };
   };
 
-  if (!isOpen) return null;
+  // DEBUG: Log when component returns null
+  if (!isOpen) {
+    console.log('RegisterModal returning null because isOpen is false');
+    return null;
+  }
+
+  console.log('RegisterModal rendering because isOpen is true');
 
   const passwordStrength = getPasswordStrength();
 
@@ -164,7 +173,7 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="px-8 pb-8 space-y-6">
-          {/* Name Field */}
+          {/* Name Field - FIXED */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Full Name
@@ -177,6 +186,33 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
                 type="text"
                 name="name"
                 value={formData.name}
+                onChange={handleInputChange}
+                className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 transition-all duration-200 ${
+                  errors.name  // ✅ FIXED: Now checking errors.name instead of errors.email
+                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                    : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                }`}
+                placeholder="Enter your full name"  // ✅ FIXED: Correct placeholder
+              />
+            </div>
+            {errors.name && (
+              <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+            )}
+          </div>
+
+          {/* Email Field */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Email Address
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Mail className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
                 onChange={handleInputChange}
                 className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 transition-all duration-200 ${
                   errors.email 
@@ -335,35 +371,17 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
             )}
           </button>
 
-          {/* Benefits */}
-          <div className="bg-blue-50 rounded-xl p-4">
-            <h4 className="text-sm font-semibold text-blue-900 mb-3">What you'll get:</h4>
-            <div className="space-y-2">
-              {[
-                'Free portfolio tracking',
-                'Real-time market insights',
-                'Premium property alerts',
-                'Expert investment advice'
-              ].map((benefit, index) => (
-                <div key={index} className="flex items-center space-x-2">
-                  <CheckCircle2 className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm text-blue-800">{benefit}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
           {/* Divider */}
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-200"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-gray-500">Or sign up with</span>
+              <span className="px-4 bg-white text-gray-500">Or continue with</span>
             </div>
           </div>
 
-          {/* Social Registration */}
+          {/* Social Login */}
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
