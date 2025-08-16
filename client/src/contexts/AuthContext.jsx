@@ -1,6 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
-import api from '../services/api';
 
 const AuthContext = createContext();
 
@@ -16,148 +14,85 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Check if user is logged in on app start
+  // Simulate checking for existing session on mount
   useEffect(() => {
-    checkAuthStatus();
+    const checkAuth = async () => {
+      try {
+        // Simulate API call to check authentication
+        const savedUser = localStorage.getItem('user');
+        if (savedUser) {
+          setUser(JSON.parse(savedUser));
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
   }, []);
 
-  const checkAuthStatus = async () => {
+  const login = async (email, password) => {
     try {
-      const token = localStorage.getItem('accessToken');
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-
-      // Set the token in axios headers
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      // Simulate API login call
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Verify token by fetching user profile
-      const response = await api.get('/api/users/profile');
-      setUser(response.data.data.user);
-    } catch (error) {
-      console.error('Auth check failed:', error);
-      // Clear invalid token
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      delete api.defaults.headers.common['Authorization'];
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const login = async (email, password, twoFactorToken = null) => {
-    try {
-      setLoading(true);
-      const response = await api.post('/api/auth/login', {
-        email,
-        password,
-        twoFactorToken
-      });
-
-      if (response.data.requires2FA) {
-        return { requires2FA: true, tempToken: response.data.tempToken };
-      }
-
-      const { user: userData, tokens } = response.data.data;
-      
-      // Store tokens
-      localStorage.setItem('accessToken', tokens.accessToken);
-      localStorage.setItem('refreshToken', tokens.refreshToken);
-      
-      // Set default header for future requests
-      api.defaults.headers.common['Authorization'] = `Bearer ${tokens.accessToken}`;
+      // Mock user data
+      const userData = {
+        id: 1,
+        name: 'John Investor',
+        email: email,
+        role: 'investor',
+        profilePicture: null,
+        joinDate: '2024-01-01',
+        portfolioValue: 2450000,
+        totalProperties: 15
+      };
       
       setUser(userData);
-      toast.success('Login successful!');
+      localStorage.setItem('user', JSON.stringify(userData));
       
-      return { success: true };
+      return userData;
     } catch (error) {
-      const message = error.response?.data?.message || 'Login failed';
-      toast.error(message);
-      throw error;
-    } finally {
-      setLoading(false);
+      throw new Error('Registration failed');
     }
   };
 
-  const register = async (userData) => {
-    try {
-      setLoading(true);
-      const response = await api.post('/api/auth/register', userData);
-      toast.success('Registration successful! Please verify your email.');
-      return response.data;
-    } catch (error) {
-      const message = error.response?.data?.message || 'Registration failed';
-      toast.error(message);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('user');
   };
 
-  const logout = async () => {
-    try {
-      await api.post('/api/auth/logout');
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      // Clear local storage and state regardless of API call success
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      delete api.defaults.headers.common['Authorization'];
-      setUser(null);
-      toast.success('Logged out successfully');
-    }
+  const updateUser = (userData) => {
+    setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
   };
 
-  const updateProfile = async (profileData) => {
+  // Register function moved inside AuthProvider
+  const register = async (name, email, password) => {
     try {
-      const response = await api.put('/api/users/profile', profileData);
-      setUser(prev => ({ ...prev, ...response.data.data.user }));
-      toast.success('Profile updated successfully!');
-      return response.data;
-    } catch (error) {
-      const message = error.response?.data?.message || 'Profile update failed';
-      toast.error(message);
-      throw error;
-    }
-  };
-
-  const changePassword = async (passwordData) => {
-    try {
-      const response = await api.put('/api/users/profile/password', passwordData);
-      toast.success('Password changed successfully!');
-      return response.data;
-    } catch (error) {
-      const message = error.response?.data?.message || 'Password change failed';
-      toast.error(message);
-      throw error;
-    }
-  };
-
-  const uploadProfilePicture = async (file) => {
-    try {
-      const formData = new FormData();
-      formData.append('profilePicture', file);
+      // Simulate API register call
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
-      const response = await api.post('/api/users/profile/picture', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      // Mock user data
+      const userData = {
+        id: Date.now(),
+        name: name,
+        email: email,
+        role: 'investor',
+        profilePicture: null,
+        joinDate: new Date().toISOString().split('T')[0],
+        portfolioValue: 0,
+        totalProperties: 0
+      };
       
-      setUser(prev => ({ 
-        ...prev, 
-        profilePicture: response.data.data.profilePicture 
-      }));
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
       
-      toast.success('Profile picture updated!');
-      return response.data;
+      return userData;
     } catch (error) {
-      const message = error.response?.data?.message || 'Upload failed';
-      toast.error(message);
-      throw error;
+      throw new Error('Registration failed');
     }
   };
 
@@ -167,10 +102,7 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
-    updateProfile,
-    changePassword,
-    uploadProfilePicture,
-    checkAuthStatus
+    updateUser
   };
 
   return (
@@ -179,3 +111,5 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
+export default AuthContext;

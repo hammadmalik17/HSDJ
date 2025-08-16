@@ -1,251 +1,199 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   BarChart3, 
   Shield, 
-  FileText, 
-  DollarSign, 
-  Users, 
-  Globe,
-  CheckCircle,
-  TrendingUp,
-  Lock,
-  Clock,
-  Download,
-  Bell
+  Smartphone, 
+  Zap, 
+  Target, 
+  Briefcase,
+  ArrowRight,
+  CheckCircle2,
+  Sparkles
 } from 'lucide-react';
 
 const FeaturesSection = () => {
+  const [visibleCards, setVisibleCards] = useState(new Set());
+  const sectionRef = useRef(null);
+
   const features = [
     {
-      icon: <BarChart3 className="w-8 h-8" />,
-      title: "Portfolio Analytics",
-      description: "Track your investment performance with real-time analytics, detailed reporting, and comprehensive market insights.",
-      color: "blue",
-      benefits: ["Real-time tracking", "Performance metrics", "Market insights"]
+      icon: BarChart3,
+      title: 'Advanced Analytics',
+      description: 'Get deep insights into property performance, market trends, and investment opportunities with our AI-powered analytics engine.',
+      color: 'from-blue-500 to-cyan-500',
+      benefits: ['Real-time market data', 'Predictive analytics', 'Custom reports']
     },
     {
-      icon: <Shield className="w-8 h-8" />,
-      title: "Bank-Level Security",
-      description: "Your investments are protected with military-grade encryption, multi-factor authentication, and secure data storage.",
-      color: "green",
-      benefits: ["256-bit encryption", "2FA protection", "Secure storage"]
+      icon: Shield,
+      title: 'Secure Management',
+      description: 'Bank-level security with multi-factor authentication, encrypted data, and secure document storage for all your investments.',
+      color: 'from-green-500 to-emerald-500',
+      benefits: ['256-bit encryption', '2FA protection', 'Secure backups']
     },
     {
-      icon: <FileText className="w-8 h-8" />,
-      title: "Document Management",
-      description: "Easily upload, manage, and track all your share certificates with automated approval workflows and digital signatures.",
-      color: "purple",
-      benefits: ["Digital certificates", "Auto-approval", "Cloud storage"]
+      icon: Smartphone,
+      title: 'Mobile Ready',
+      description: 'Access your portfolio anywhere, anytime with our responsive design that works perfectly on all devices.',
+      color: 'from-purple-500 to-pink-500',
+      benefits: ['iOS & Android apps', 'Offline access', 'Push notifications']
     },
     {
-      icon: <DollarSign className="w-8 h-8" />,
-      title: "Real-Time Valuations",
-      description: "Get instant updates on your share values, portfolio performance, and market trends with live data feeds.",
-      color: "yellow",
-      benefits: ["Live market data", "Instant updates", "ROI tracking"]
+      icon: Zap,
+      title: 'Real-time Updates',
+      description: 'Stay informed with instant notifications about market changes, property updates, and investment opportunities.',
+      color: 'from-orange-500 to-red-500',
+      benefits: ['Live data feeds', 'Smart alerts', 'Market insights']
     },
     {
-      icon: <Users className="w-8 h-8" />,
-      title: "Shareholder Portal",
-      description: "Dedicated portal for shareholders to manage investments, view documents, and communicate with directors.",
-      color: "indigo",
-      benefits: ["Personal dashboard", "Direct communication", "Investment history"]
+      icon: Target,
+      title: 'Smart Matching',
+      description: 'Our AI algorithm matches you with properties that align with your investment goals and risk tolerance.',
+      color: 'from-indigo-500 to-purple-500',
+      benefits: ['AI-powered matching', 'Risk assessment', 'Goal tracking']
     },
     {
-      icon: <Globe className="w-8 h-8" />,
-      title: "24/7 Global Access",
-      description: "Access your portfolio anytime, anywhere with our responsive web platform and mobile-optimized interface.",
-      color: "teal",
-      benefits: ["Mobile responsive", "Global access", "Always available"]
+      icon: Briefcase,
+      title: 'Portfolio Management',
+      description: 'Comprehensive tools to track, analyze, and optimize your real estate investment portfolio performance.',
+      color: 'from-teal-500 to-blue-500',
+      benefits: ['Performance tracking', 'ROI optimization', 'Diversification analysis']
     }
   ];
 
-  const additionalFeatures = [
-    {
-      icon: <CheckCircle className="w-6 h-6" />,
-      title: "Automated Compliance",
-      description: "Stay compliant with regulations automatically"
-    },
-    {
-      icon: <TrendingUp className="w-6 h-6" />,
-      title: "Investment Insights",
-      description: "AI-powered market analysis and recommendations"
-    },
-    {
-      icon: <Lock className="w-6 h-6" />,
-      title: "Audit Trail",
-      description: "Complete transaction history and audit logs"
-    },
-    {
-      icon: <Clock className="w-6 h-6" />,
-      title: "Real-Time Notifications",
-      description: "Instant alerts for important portfolio changes"
-    },
-    {
-      icon: <Download className="w-6 h-6" />,
-      title: "Export & Reports",
-      description: "Generate detailed reports and export data"
-    },
-    {
-      icon: <Bell className="w-6 h-6" />,
-      title: "Smart Alerts",
-      description: "Customizable notifications for market opportunities"
-    }
-  ];
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const index = parseInt(entry.target.dataset.index);
+            setVisibleCards(prev => new Set([...prev, index]));
+          }
+        });
+      },
+      { threshold: 0.2, rootMargin: '0px 0px -50px 0px' }
+    );
 
-  const getColorClasses = (color) => {
-    const colorMap = {
-      blue: "from-blue-600 to-indigo-600 group-hover:from-blue-700 group-hover:to-indigo-700",
-      green: "from-green-600 to-emerald-600 group-hover:from-green-700 group-hover:to-emerald-700",
-      purple: "from-purple-600 to-violet-600 group-hover:from-purple-700 group-hover:to-violet-700",
-      yellow: "from-yellow-500 to-orange-500 group-hover:from-yellow-600 group-hover:to-orange-600",
-      indigo: "from-indigo-600 to-blue-600 group-hover:from-indigo-700 group-hover:to-blue-700",
-      teal: "from-teal-600 to-cyan-600 group-hover:from-teal-700 group-hover:to-cyan-700"
-    };
-    return colorMap[color] || colorMap.blue;
-  };
+    const cards = sectionRef.current?.querySelectorAll('.feature-card');
+    cards?.forEach((card) => observer.observe(card));
 
-  const getBgColorClasses = (color) => {
-    const colorMap = {
-      blue: "group-hover:bg-blue-50",
-      green: "group-hover:bg-green-50",
-      purple: "group-hover:bg-purple-50",
-      yellow: "group-hover:bg-yellow-50",
-      indigo: "group-hover:bg-indigo-50",
-      teal: "group-hover:bg-teal-50"
-    };
-    return colorMap[color] || colorMap.blue;
-  };
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <section id="features" className="py-20 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="features" ref={sectionRef} className="py-20 lg:py-32 bg-gradient-to-br from-gray-50 to-blue-50 relative overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute inset-0">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-blue-200/30 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-200/30 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Why Choose RealEstate Pro?
+        <div className="text-center mb-16 lg:mb-24">
+          <div className="inline-flex items-center space-x-2 bg-white/80 backdrop-blur-sm rounded-full px-4 py-2 border border-gray-200 mb-6">
+            <Sparkles className="h-4 w-4 text-blue-600" />
+            <span className="text-gray-700 text-sm font-medium">Why Choose Us</span>
+          </div>
+          
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
+            Why Choose
+            <span className="block bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
+              RealEstate Pro?
+            </span>
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Our platform provides everything you need to manage your real estate investments 
-            efficiently, securely, and profitably. Experience the future of investment management.
+          
+          <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            Experience the future of real estate investment with our comprehensive platform 
+            designed for modern investors who demand excellence.
           </p>
         </div>
 
-        {/* Main Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-          {features.map((feature, index) => (
-            <div 
-              key={index} 
-              className={`group bg-gray-50 rounded-2xl p-8 transition-all duration-300 hover:shadow-xl ${getBgColorClasses(feature.color)}`}
-            >
-              {/* Icon */}
-              <div className={`w-16 h-16 bg-gradient-to-r ${getColorClasses(feature.color)} rounded-xl flex items-center justify-center text-white mb-6 transition-all duration-300 group-hover:scale-110`}>
-                {feature.icon}
-              </div>
-              
-              {/* Content */}
-              <h3 className="text-xl font-semibold text-gray-900 mb-4 group-hover:text-gray-800">
-                {feature.title}
-              </h3>
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                {feature.description}
-              </p>
-              
-              {/* Benefits List */}
-              <ul className="space-y-2">
-                {feature.benefits.map((benefit, benefitIndex) => (
-                  <li key={benefitIndex} className="flex items-center text-sm text-gray-700">
-                    <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-                    <span>{benefit}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-
-        {/* Additional Features */}
-        <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-3xl p-8 md:p-12">
-          <div className="text-center mb-12">
-            <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-              Plus Many More Features
-            </h3>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Our comprehensive platform includes everything you need for successful real estate investment management.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {additionalFeatures.map((feature, index) => (
-              <div 
+        {/* Features Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
+          {features.map((feature, index) => {
+            const IconComponent = feature.icon;
+            const isVisible = visibleCards.has(index);
+            
+            return (
+              <div
                 key={index}
-                className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 group"
+                data-index={index}
+                className={`feature-card group relative bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-700 border border-gray-100 hover:border-gray-200 ${
+                  isVisible 
+                    ? 'translate-y-0 opacity-100' 
+                    : 'translate-y-10 opacity-0'
+                }`}
+                style={{ transitionDelay: `${index * 100}ms` }}
               >
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-300">
-                    {feature.icon}
+                {/* Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50/50 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                
+                <div className="relative z-10">
+                  {/* Icon */}
+                  <div className={`w-16 h-16 bg-gradient-to-br ${feature.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg`}>
+                    <IconComponent className="h-8 w-8 text-white" />
                   </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-gray-900 mb-2">
+
+                  {/* Content */}
+                  <div className="space-y-4">
+                    <h3 className="text-xl lg:text-2xl font-bold text-gray-900 group-hover:text-gray-800 transition-colors">
                       {feature.title}
-                    </h4>
-                    <p className="text-sm text-gray-600">
+                    </h3>
+                    
+                    <p className="text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors">
                       {feature.description}
                     </p>
+
+                    {/* Benefits List */}
+                    <div className="space-y-2 pt-4">
+                      {feature.benefits.map((benefit, benefitIndex) => (
+                        <div key={benefitIndex} className="flex items-center space-x-3">
+                          <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                          <span className="text-sm text-gray-600">{benefit}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Learn More Button */}
+                    <button className="group/btn flex items-center space-x-2 text-blue-600 hover:text-blue-700 font-medium mt-6 transition-colors">
+                      <span>Learn more</span>
+                      <ArrowRight className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
+                    </button>
                   </div>
+
+                  {/* Hover Effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 to-purple-600/5 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </div>
               </div>
-            ))}
-          </div>
+            );
+          })}
         </div>
 
-        {/* Stats Section */}
-        <div className="mt-16 text-center">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="group">
-              <div className="text-3xl md:text-4xl font-bold text-blue-600 mb-2 group-hover:scale-110 transition-transform duration-300">
-                99.9%
+        {/* Bottom CTA Section */}
+        <div className="mt-20 lg:mt-32 text-center">
+          <div className="bg-white rounded-3xl p-8 lg:p-12 shadow-xl border border-gray-100 max-w-4xl mx-auto">
+            <div className="space-y-6">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
+                <Sparkles className="h-10 w-10 text-white" />
               </div>
-              <div className="text-gray-600 font-medium">Uptime</div>
-            </div>
-            <div className="group">
-              <div className="text-3xl md:text-4xl font-bold text-green-600 mb-2 group-hover:scale-110 transition-transform duration-300">
-                500+
+              
+              <h3 className="text-2xl lg:text-3xl font-bold text-gray-900">
+                Ready to Transform Your Real Estate Journey?
+              </h3>
+              
+              <p className="text-gray-600 max-w-2xl mx-auto">
+                Join thousands of investors who have already discovered the power of our platform. 
+                Start building your dream portfolio today.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+                <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-2xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                  Start Free Trial
+                </button>
+                <button className="border border-gray-300 text-gray-700 px-8 py-4 rounded-2xl font-semibold hover:bg-gray-50 transition-all duration-300">
+                  Schedule Demo
+                </button>
               </div>
-              <div className="text-gray-600 font-medium">Happy Investors</div>
-            </div>
-            <div className="group">
-              <div className="text-3xl md:text-4xl font-bold text-purple-600 mb-2 group-hover:scale-110 transition-transform duration-300">
-                ₹50Cr+
-              </div>
-              <div className="text-gray-600 font-medium">Assets Managed</div>
-            </div>
-            <div className="group">
-              <div className="text-3xl md:text-4xl font-bold text-orange-600 mb-2 group-hover:scale-110 transition-transform duration-300">
-                15+
-              </div>
-              <div className="text-gray-600 font-medium">Years Experience</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Call to Action */}
-        <div className="mt-16 text-center">
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 md:p-12 text-white">
-            <h3 className="text-2xl md:text-3xl font-bold mb-4">
-              Ready to Transform Your Investment Experience?
-            </h3>
-            <p className="text-blue-100 mb-8 max-w-2xl mx-auto">
-              Join thousands of successful investors who trust RealEstate Pro to manage their portfolios. 
-              Start your journey today with our comprehensive investment platform.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6">
-              <button className="bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold hover:bg-gray-100 transition-colors duration-200 shadow-lg">
-                Start Free Trial
-              </button>
-              <button className="border-2 border-white text-white px-8 py-4 rounded-xl font-semibold hover:bg-white hover:text-blue-600 transition-all duration-200">
-                Schedule Demo
-              </button>
             </div>
           </div>
         </div>
