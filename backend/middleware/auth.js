@@ -1,3 +1,4 @@
+// middleware/auth.js - FIXED VERSION
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const AuditLog = require('../models/AuditLog');
@@ -66,136 +67,7 @@ const getClientIP = (req) => {
          '127.0.0.1';
 };
 
-// Authentication middleware
-// const authenticateToken = async (req, res, next) => {
-//   const startTime = Date.now();
-  
-//   try {
-//     const token = extractToken(req);
-    
-//     if (!token) {
-//       await AuditLog.createLog({
-//         userId: null,
-//         action: 'system_access',
-//         success: false,
-//         errorMessage: 'No authentication token provided',
-//         ipAddress: getClientIP(req),
-//         userAgent: req.headers['user-agent'] || 'Unknown',
-//         severity: 'medium',
-//         category: 'auth'
-//       });
-      
-//       return res.status(401).json({
-//         success: false,
-//         message: 'Access token is required'
-//       });
-//     }
-    
-//     // Verify token
-//     const decoded = verifyToken(token, process.env.JWT_SECRET);
-    
-//     // Find user and check if still active
-//     const user = await User.findById(decoded.userId).select('+security');
-    
-//     if (!user) {
-//       await AuditLog.createLog({
-//         userId: decoded.userId,
-//         action: 'system_access',
-//         success: false,
-//         errorMessage: 'User not found',
-//         ipAddress: getClientIP(req),
-//         userAgent: req.headers['user-agent'] || 'Unknown',
-//         severity: 'high',
-//         category: 'auth'
-//       });
-      
-//       return res.status(401).json({
-//         success: false,
-//         message: 'Invalid token - user not found'
-//       });
-//     }
-    
-//     if (!user.isActive) {
-//       await AuditLog.createLog({
-//         userId: user._id,
-//         action: 'system_access',
-//         success: false,
-//         errorMessage: 'User account is inactive',
-//         ipAddress: getClientIP(req),
-//         userAgent: req.headers['user-agent'] || 'Unknown',
-//         severity: 'medium',
-//         category: 'auth'
-//       });
-      
-//       return res.status(401).json({
-//         success: false,
-//         message: 'Account is inactive'
-//       });
-//     }
-    
-//     if (user.isLocked) {
-//       await AuditLog.createLog({
-//         userId: user._id,
-//         action: 'system_access',
-//         success: false,
-//         errorMessage: 'User account is locked',
-//         ipAddress: getClientIP(req),
-//         userAgent: req.headers['user-agent'] || 'Unknown',
-//         severity: 'medium',
-//         category: 'auth'
-//       });
-      
-//       return res.status(401).json({
-//         success: false,
-//         message: 'Account is temporarily locked'
-//       });
-//     }
-    
-//     // Add user to request object
-//     req.user = user;
-//     req.clientIP = getClientIP(req);
-//     req.userAgent = req.headers['user-agent'] || 'Unknown';
-    
-//     // Log successful authentication
-//     const duration = Date.now() - startTime;
-//     await AuditLog.createLog({
-//       userId: user._id,
-//       action: 'system_access',
-//       success: true,
-//       ipAddress: req.clientIP,
-//       userAgent: req.userAgent,
-//       duration,
-//       severity: 'low',
-//       category: 'auth'
-//     });
-    
-//     next();
-    
-//   } catch (error) {
-//     const duration = Date.now() - startTime;
-    
-//     await AuditLog.createLog({
-//       userId: null,
-//       action: 'system_access',
-//       success: false,
-//       errorMessage: error.message,
-//       ipAddress: getClientIP(req),
-//       userAgent: req.headers['user-agent'] || 'Unknown',
-//       duration,
-//       severity: 'medium',
-//       category: 'auth'
-//     });
-    
-//     return res.status(401).json({
-//       success: false,
-//       message: 'Invalid or expired token'
-//     });
-//   }
-// };
-
-// Add this check to your middleware/auth.js in the authenticateToken function
-// Around line 60-70, wrap the AuditLog.createLog calls with a check:
-
+// FIXED: Proper Authentication middleware that checks MongoDB
 const authenticateToken = async (req, res, next) => {
   const startTime = Date.now();
   
@@ -203,7 +75,6 @@ const authenticateToken = async (req, res, next) => {
     const token = extractToken(req);
     
     if (!token) {
-      // Don't log to audit if no user - just return error
       return res.status(401).json({
         success: false,
         message: 'Access token is required'
@@ -213,57 +84,63 @@ const authenticateToken = async (req, res, next) => {
     // Verify token
     const decoded = verifyToken(token, process.env.JWT_SECRET);
     
-    // Find user and check if still active
+    // CRITICAL: Find user in MongoDB and check if still active
     const user = await User.findById(decoded.userId).select('+security');
     
     if (!user) {
-      // Only log if we have a valid user ID
-      if (decoded.userId) {
-        await AuditLog.createLog({
-          userId: decoded.userId,
-          action: 'system_access',
-          success: false,
-          errorMessage: 'User not found',
-          ipAddress: getClientIP(req),
-          userAgent: req.headers['user-agent'] || 'Unknown',
-          severity: 'high',
-          category: 'auth'
-        });
-      }
-      
+      // User doesn't exist in database
       return res.status(401).json({
         success: false,
         message: 'Invalid token - user not found'
       });
     }
     
-    // Rest of your authentication logic...
+    if (!user.isActive) {
+      return res.status(401).json({
+        success: false,
+        message: 'Account is inactive'
+      });
+    }
+    
+    if (user.isLocked) {
+      return res.status(401).json({
+        success: false,
+        message: 'Account is temporarily locked'
+      });
+    }
+    
+    // Add user to request object
     req.user = user;
     req.clientIP = getClientIP(req);
     req.userAgent = req.headers['user-agent'] || 'Unknown';
     
-    // Log successful authentication
+    // Log successful authentication (only if AuditLog is available)
     const duration = Date.now() - startTime;
-    await AuditLog.createLog({
-      userId: user._id,
-      action: 'system_access',
-      success: true,
-      ipAddress: req.clientIP,
-      userAgent: req.userAgent,
-      duration,
-      severity: 'low',
-      category: 'auth'
-    });
+    try {
+      await AuditLog.createLog({
+        userId: user._id,
+        action: 'system_access',
+        success: true,
+        ipAddress: req.clientIP,
+        userAgent: req.userAgent,
+        duration,
+        severity: 'low',
+        category: 'auth'
+      });
+    } catch (auditError) {
+      // Don't fail auth if audit logging fails
+      console.warn('Audit logging failed:', auditError.message);
+    }
     
     next();
     
   } catch (error) {
     const duration = Date.now() - startTime;
     
-    // Only log audit if we have user context
-    if (req.user) {
+    // Log failed authentication attempt
+    try {
       await AuditLog.createLog({
-        userId: req.user._id,
+        userId: null,
         action: 'system_access',
         success: false,
         errorMessage: error.message,
@@ -273,6 +150,8 @@ const authenticateToken = async (req, res, next) => {
         severity: 'medium',
         category: 'auth'
       });
+    } catch (auditError) {
+      console.warn('Audit logging failed:', auditError.message);
     }
     
     return res.status(401).json({
@@ -294,16 +173,20 @@ const requireRole = (...allowedRoles) => {
       }
       
       if (!allowedRoles.includes(req.user.role)) {
-        await AuditLog.createLog({
-          userId: req.user._id,
-          action: 'system_access',
-          success: false,
-          errorMessage: `Insufficient permissions. Required: ${allowedRoles.join(' or ')}, Has: ${req.user.role}`,
-          ipAddress: req.clientIP,
-          userAgent: req.userAgent,
-          severity: 'high',
-          category: 'security'
-        });
+        try {
+          await AuditLog.createLog({
+            userId: req.user._id,
+            action: 'system_access',
+            success: false,
+            errorMessage: `Insufficient permissions. Required: ${allowedRoles.join(' or ')}, Has: ${req.user.role}`,
+            ipAddress: req.clientIP,
+            userAgent: req.userAgent,
+            severity: 'high',
+            category: 'security'
+          });
+        } catch (auditError) {
+          console.warn('Audit logging failed:', auditError.message);
+        }
         
         return res.status(403).json({
           success: false,
@@ -336,46 +219,26 @@ const enforceChineseWall = (resourceType = 'user') => {
       // Shareholders can only access their own data
       if (requestingUser.role === 'shareholder') {
         if (targetUserId && targetUserId.toString() !== requestingUser._id.toString()) {
-          await AuditLog.createLog({
-            userId: requestingUser._id,
-            action: 'system_access',
-            success: false,
-            errorMessage: `Chinese Wall violation: Attempted to access ${resourceType} data of another user`,
-            ipAddress: req.clientIP,
-            userAgent: req.userAgent,
-            severity: 'high',
-            category: 'security',
-            riskyAction: true,
-            details: {
-              attemptedAccess: targetUserId,
-              resourceType
-            }
-          });
+          try {
+            await AuditLog.createLog({
+              userId: requestingUser._id,
+              action: 'system_access',
+              success: false,
+              errorMessage: 'Attempted to access unauthorized data',
+              ipAddress: req.clientIP,
+              userAgent: req.userAgent,
+              severity: 'high',
+              category: 'security'
+            });
+          } catch (auditError) {
+            console.warn('Audit logging failed:', auditError.message);
+          }
           
           return res.status(403).json({
             success: false,
             message: 'Access denied: You can only access your own data'
           });
         }
-      }
-      
-      // Visitors have no access to user data
-      if (requestingUser.role === 'visitor') {
-        await AuditLog.createLog({
-          userId: requestingUser._id,
-          action: 'system_access',
-          success: false,
-          errorMessage: 'Visitor attempted to access restricted data',
-          ipAddress: req.clientIP,
-          userAgent: req.userAgent,
-          severity: 'medium',
-          category: 'security'
-        });
-        
-        return res.status(403).json({
-          success: false,
-          message: 'Access denied: Insufficient permissions'
-        });
       }
       
       next();
@@ -389,32 +252,22 @@ const enforceChineseWall = (resourceType = 'user') => {
 };
 
 // Rate limiting for sensitive operations
-const sensitiveOperationLimiter = (maxAttempts = 3, windowMs = 15 * 60 * 1000) => {
+const sensitiveOperationLimiter = (maxAttempts = 5, windowMs = 15 * 60 * 1000) => {
   const attempts = new Map();
   
-  return async (req, res, next) => {
-    const key = `${req.user._id}-${req.clientIP}`;
+  return (req, res, next) => {
+    const key = req.clientIP || req.ip;
     const now = Date.now();
     
     // Clean old attempts
-    const userAttempts = attempts.get(key) || [];
-    const recentAttempts = userAttempts.filter(time => now - time < windowMs);
+    const recentAttempts = (attempts.get(key) || []).filter(
+      attempt => now - attempt < windowMs
+    );
     
     if (recentAttempts.length >= maxAttempts) {
-      await AuditLog.createLog({
-        userId: req.user._id,
-        action: 'system_access',
-        success: false,
-        errorMessage: 'Rate limit exceeded for sensitive operation',
-        ipAddress: req.clientIP,
-        userAgent: req.userAgent,
-        severity: 'high',
-        category: 'security'
-      });
-      
       return res.status(429).json({
         success: false,
-        message: 'Too many attempts. Please try again later.',
+        message: 'Too many sensitive operations attempted. Please try again later.',
         retryAfter: Math.ceil(windowMs / 1000)
       });
     }
@@ -449,7 +302,7 @@ const require2FA = async (req, res, next) => {
       });
     }
     
-    // Verify 2FA token (implement speakeasy verification here)
+    // Verify 2FA token
     const speakeasy = require('speakeasy');
     const verified = speakeasy.totp.verify({
       secret: req.user.security.twoFactorSecret,
@@ -459,16 +312,20 @@ const require2FA = async (req, res, next) => {
     });
     
     if (!verified) {
-      await AuditLog.createLog({
-        userId: req.user._id,
-        action: 'system_access',
-        success: false,
-        errorMessage: 'Invalid 2FA token provided',
-        ipAddress: req.clientIP,
-        userAgent: req.userAgent,
-        severity: 'high',
-        category: 'security'
-      });
+      try {
+        await AuditLog.createLog({
+          userId: req.user._id,
+          action: 'system_access',
+          success: false,
+          errorMessage: 'Invalid 2FA token provided',
+          ipAddress: req.clientIP,
+          userAgent: req.userAgent,
+          severity: 'high',
+          category: 'security'
+        });
+      } catch (auditError) {
+        console.warn('Audit logging failed:', auditError.message);
+      }
       
       return res.status(403).json({
         success: false,
