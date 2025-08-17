@@ -254,3 +254,187 @@ code {
 .Toastify__toast--info {
   background-color: #3b82f6;
 }
+.navbar-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000; /* High z-index to ensure it stays on top */
+}
+
+.navbar-scrolled {
+  z-index: 1050; /* Even higher when scrolled */
+}
+
+/* Mobile Menu Z-Index */
+.mobile-menu {
+  z-index: 1040;
+}
+
+.mobile-menu-overlay {
+  z-index: 1030;
+}
+
+/* Modal Z-Index (should be higher than navbar) */
+.modal-overlay {
+  z-index: 2000;
+}
+
+.modal-content {
+  z-index: 2010;
+}
+
+/* Toast Notifications Z-Index */
+.toast-container {
+  z-index: 9999;
+}
+
+/* Ensure body has proper spacing for fixed navbar */
+body {
+  padding-top: 0; /* Remove any existing padding */
+}
+
+/* Add padding to main content to account for fixed navbar */
+.main-content {
+  padding-top: 5rem; /* 80px - adjust based on your navbar height */
+}
+
+/* For homepage with hero section, you might want no padding */
+.homepage-content {
+  padding-top: 0;
+}
+
+/* Responsive navbar height adjustments */
+@media (min-width: 1024px) {
+  .main-content {
+    padding-top: 5rem; /* 80px for larger navbar on desktop */
+  }
+}
+
+@media (max-width: 1023px) {
+  .main-content {
+    padding-top: 4rem; /* 64px for smaller navbar on mobile */
+  }
+}
+
+/* Prevent body scroll when mobile menu is open */
+body.mobile-menu-open {
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* Smooth transitions for navbar state changes */
+.navbar-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Fix for backdrop blur on older browsers */
+@supports not (backdrop-filter: blur(12px)) {
+  .navbar-scrolled {
+    background-color: rgba(255, 255, 255, 0.95);
+  }
+  
+  .mobile-menu {
+    background-color: rgba(255, 255, 255, 0.95);
+  }
+}
+
+/* Ensure proper stacking context */
+.navbar-container {
+  position: relative;
+  z-index: auto;
+  transform: translateZ(0); /* Creates new stacking context */
+}
+
+/* Fix for Safari backdrop-filter issues */
+@supports (-webkit-backdrop-filter: blur(12px)) {
+  .navbar-backdrop {
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+}
+
+/* Animation for mobile menu */
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+}
+
+.mobile-menu-enter {
+  animation: slideDown 0.3s ease-out forwards;
+}
+
+.mobile-menu-exit {
+  animation: slideUp 0.3s ease-out forwards;
+}
+/* NAVBAR OVERLAP FIX - Add this to your existing index.css */
+
+/* Fix z-index conflicts for navbar states */
+nav[class*="fixed"][class*="z-40"] {
+  z-index: 40 !important;
+}
+
+nav[class*="fixed"][class*="z-50"] {
+  z-index: 50 !important;
+}
+
+/* Mobile menu specific fixes */
+.mobile-menu-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  z-index: 45 !important;
+}
+
+.mobile-menu-panel {
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  height: 100vh !important;
+  width: 320px !important;
+  max-width: 85vw !important;
+  background-color: white !important;
+  z-index: 46 !important;
+  transform: translateX(100%);
+  transition: transform 0.3s ease-in-out;
+}
+
+.mobile-menu-panel.open {
+  transform: translateX(0) !important;
+}
+
+/* Prevent body scroll when mobile menu is open */
+body.mobile-menu-open {
+  overflow: hidden !important;
+}
+
+/* Modal z-index - ensure modals appear above navbar */
+.Toastify__toast-container {
+  z-index: 9999 !important;
+}
+
+/* Ensure auth buttons don't overlap in different states */
+.navbar-auth-buttons {
+  position: relative;
+  z-index: 10;
+}
