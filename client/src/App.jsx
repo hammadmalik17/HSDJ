@@ -1,3 +1,4 @@
+// client/src/App.jsx - PERFECT VERSION
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
@@ -12,8 +13,6 @@ import HeroSection from './components/Homepage/HeroSection';
 import FeaturesSection from './components/Homepage/FeaturesSection';
 import AboutSection from './components/Homepage/AboutSection';
 import ContactSection from './components/Homepage/ContactSection';
-import LoginModal from './components/Auth/LoginModal';
-import RegisterModal from './components/Auth/RegisterModal';
 import Dashboard from './components/Dashboard/Dashboard';
 
 // Homepage Component
@@ -104,19 +103,6 @@ const App = () => {
           {/* Redirect any unknown routes to home */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-
-        {/* Authentication Modals */}
-        <LoginModal 
-          isOpen={showLoginModal}
-          onClose={handleCloseLoginModal}
-          onSwitchToRegister={handleSwitchToRegister}
-        />
-        
-        <RegisterModal 
-          isOpen={showRegisterModal}
-          onClose={handleCloseRegisterModal}
-          onSwitchToLogin={handleSwitchToLogin}
-        />
       </div>
     </Router>
   );

@@ -1,3 +1,4 @@
+// client/src/components/Auth/LoginModal.jsx - PERFECT VERSION
 import React, { useState } from 'react';
 import { X, Eye, EyeOff, Building2, Mail, Lock, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -27,6 +28,14 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
         [name]: ''
       }));
     }
+    
+    // Clear submit error when user changes input
+    if (errors.submit) {
+      setErrors(prev => ({
+        ...prev,
+        submit: ''
+      }));
+    }
   };
 
   const validateForm = () => {
@@ -54,57 +63,80 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
     if (!validateForm()) return;
     
     setIsLoading(true);
+    setErrors({}); // Clear all previous errors
     
     try {
+      console.log('🔑 LoginModal: Attempting login...');
+      
       await login(formData.email, formData.password);
+      
+      console.log('✅ LoginModal: Login successful, closing modal');
+      
+      // Only close modal and reset form on successful login
       onClose();
       setFormData({ email: '', password: '' });
+      setErrors({});
+      
     } catch (error) {
-      setErrors({ submit: error.message || 'Login failed. Please try again.' });
+      console.error('❌ LoginModal: Login failed:', error.message);
+      
+      // Show error message in the modal - DON'T close it
+      setErrors({ 
+        submit: error.message || 'Invalid email or password. Please try again.' 
+      });
+      
+      // Don't close the modal - let user try again
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleClose = () => {
+    // Reset form and errors when closing
     setFormData({ email: '', password: '' });
     setErrors({});
-    setShowPassword(false);
+    setIsLoading(false);
     onClose();
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={handleClose}
-      />
-      
-      {/* Modal */}
-      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md transform transition-all duration-300">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-2xl p-8 max-w-md w-full max-h-[90vh] overflow-y-auto relative">
+        {/* Close Button */}
+        <button
+          onClick={handleClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <X className="w-6 h-6" />
+        </button>
+
         {/* Header */}
-        <div className="relative p-8 pb-6">
-          <button
-            onClick={handleClose}
-            className="absolute top-6 right-6 w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors"
-          >
-            <X className="h-4 w-4 text-gray-600" />
-          </button>
-          
-          <div className="text-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <Building2 className="h-8 w-8 text-white" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back</h2>
-            <p className="text-gray-600">Sign in to your RealEstate Pro account</p>
+        <div className="text-center mb-8">
+          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mb-4">
+            <Building2 className="w-8 h-8 text-white" />
           </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back</h2>
+          <p className="text-gray-600">Sign in to your account</p>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="px-8 pb-8 space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* FIXED: Show submit error at the top if it exists */}
+          {errors.submit && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <X className="h-5 w-5 text-red-400" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-red-800 font-medium">{errors.submit}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Email Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -125,6 +157,7 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
                     : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
                 }`}
                 placeholder="Enter your email"
+                disabled={isLoading}
               />
             </div>
             {errors.email && (
@@ -152,11 +185,13 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
                     : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
                 }`}
                 placeholder="Enter your password"
+                disabled={isLoading}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                disabled={isLoading}
               >
                 {showPassword ? (
                   <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
@@ -175,33 +210,24 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
             <button
               type="button"
               className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+              disabled={isLoading}
             >
               Forgot your password?
             </button>
           </div>
 
-          {/* Submit Error */}
-          {errors.submit && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-3">
-              <p className="text-sm text-red-600">{errors.submit}</p>
-            </div>
-          )}
-
           {/* Submit Button */}
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center"
           >
             {isLoading ? (
-              <>
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                <span>Signing In...</span>
-              </>
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             ) : (
               <>
-                <span>Sign In</span>
-                <ArrowRight className="h-4 w-4" />
+                Sign In
+                <ArrowRight className="w-4 h-4 ml-2" />
               </>
             )}
           </button>
@@ -221,6 +247,7 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
             <button
               type="button"
               className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium text-gray-700"
+              disabled={isLoading}
             >
               <span className="text-lg mr-2">🔍</span>
               Google
@@ -228,22 +255,24 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
             <button
               type="button"
               className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium text-gray-700"
+              disabled={isLoading}
             >
               <span className="text-lg mr-2">📱</span>
               Apple
             </button>
           </div>
 
-          {/* Switch to Register */}
-          <div className="text-center pt-4 border-t border-gray-100">
+          {/* Register Link */}
+          <div className="text-center pt-4 border-t border-gray-200">
             <p className="text-gray-600">
               Don't have an account?{' '}
               <button
                 type="button"
                 onClick={onSwitchToRegister}
                 className="text-blue-600 hover:text-blue-700 font-medium"
+                disabled={isLoading}
               >
-                Sign up
+                Create one here
               </button>
             </p>
           </div>

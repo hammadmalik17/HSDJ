@@ -1,3 +1,4 @@
+// client/src/components/Layout/Navigation.jsx - PERFECT VERSION
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Building2, Home, BarChart3, Users, Settings } from 'lucide-react';
@@ -97,22 +98,25 @@ const Navigation = () => {
 
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center space-x-8">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  to={link.href.startsWith('#') ? location.pathname : link.href}
-                  onClick={() => handleNavClick(link.href)}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-white/10 hover:backdrop-blur-sm relative group ${
-                    (!isScrolled && location.pathname === '/') 
-                      ? 'text-white hover:text-blue-200' 
-                      : 'text-gray-700 hover:text-blue-600'
-                  }`}
-                >
-                  <link.icon className="h-4 w-4" />
-                  <span>{link.name}</span>
-                  <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600 group-hover:w-full transition-all duration-300"></div>
-                </Link>
-              ))}
+              {navLinks.map((link) => {
+                const IconComponent = link.icon;
+                return (
+                  <Link
+                    key={link.name}
+                    to={link.href.startsWith('#') ? location.pathname : link.href}
+                    onClick={() => handleNavClick(link.href)}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-white/10 hover:backdrop-blur-sm relative group ${
+                      (!isScrolled && location.pathname === '/') 
+                        ? 'text-white hover:text-blue-200' 
+                        : 'text-gray-700 hover:text-blue-600'
+                    }`}
+                  >
+                    <IconComponent className="h-4 w-4" />
+                    <span>{link.name}</span>
+                    <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600 group-hover:w-full transition-all duration-300"></div>
+                  </Link>
+                );
+              })}
             </div>
 
             {/* Desktop Auth Buttons */}
@@ -224,17 +228,20 @@ const Navigation = () => {
         {/* Mobile Navigation Links */}
         <div className="py-6">
           <div className="px-6 space-y-2">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                to={link.href.startsWith('#') ? location.pathname : link.href}
-                onClick={() => handleNavClick(link.href)}
-                className="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200"
-              >
-                <link.icon className="h-5 w-5 text-gray-500" />
-                <span className="font-medium">{link.name}</span>
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const IconComponent = link.icon;
+              return (
+                <Link
+                  key={link.name}
+                  to={link.href.startsWith('#') ? location.pathname : link.href}
+                  onClick={() => handleNavClick(link.href)}
+                  className="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200"
+                >
+                  <IconComponent className="h-5 w-5 text-gray-500" />
+                  <span className="font-medium">{link.name}</span>
+                </Link>
+              );
+            })}
           </div>
 
           {/* Mobile Auth Buttons */}
@@ -269,7 +276,7 @@ const Navigation = () => {
         </div>
       </div>
 
-      {/* Modals */}
+      {/* Modals - FIXED: Only close on success */}
       <LoginModal 
         isOpen={showLoginModal} 
         onClose={() => setShowLoginModal(false)}
