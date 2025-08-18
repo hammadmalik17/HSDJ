@@ -1,4 +1,4 @@
-// middleware/auth.js - FIXED VERSION
+
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const AuditLog = require('../models/AuditLog');
