@@ -1,4 +1,4 @@
-// client/src/App.jsx - PERFECT VERSION
+// client/src/App.jsx - Updated Homepage Component with DirectorMessage
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
@@ -12,16 +12,18 @@ import Navigation from './components/Layout/Navigation';
 import HeroSection from './components/Homepage/HeroSection';
 import FeaturesSection from './components/Homepage/FeaturesSection';
 import AboutSection from './components/Homepage/AboutSection';
+import DirectorMessage from './components/Homepage/DirectorMessage';
 import ContactSection from './components/Homepage/ContactSection';
 import Dashboard from './components/Dashboard/Dashboard';
 
-// Homepage Component
+// Enhanced Homepage Component with DirectorMessage
 const Homepage = ({ onGetStartedClick }) => {
   return (
     <div className="min-h-screen">
       <HeroSection onGetStartedClick={onGetStartedClick} />
       <FeaturesSection />
       <AboutSection />
+      <DirectorMessage />
       <ContactSection />
     </div>
   );

@@ -92,7 +92,7 @@ const Navigation = () => {
                   ? 'text-white' 
                   : 'bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent'
               }`}>
-                RealEstate Pro
+                HSDJ
               </span>
             </Link>
 
